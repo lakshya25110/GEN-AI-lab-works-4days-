@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive FinTech Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 0.5rem 0;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        .status-badge.active-green {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            animation: pulse-green 2s infinite;
+        }
+        .status-badge.active-blue {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+            animation: pulse-blue 2s infinite;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        button:hover { background: #2563eb; transform: translateY(-2px); }
+        button:disabled { background: #475569; cursor: not-allowed; transform: none; opacity: 0.7; }
+
+        /* Graph Visualization */
+        .graph-container {
+            position: relative;
+            height: 300px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            overflow: hidden;
+        }
+
+        .node {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid var(--text-muted);
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 2;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            min-width: 120px;
+        }
+
+        .node h3 { margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+        .node span { font-size: 0.85rem; color: var(--text-muted); }
+
+        .node.active {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+            transform: translateY(-8px) scale(1.05);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* ETL specific node colors */
+        #node-extract.active { border-color: var(--accent-purple); box-shadow: 0 0 25px rgba(139, 92, 246, 0.5); background: rgba(139, 92, 246, 0.1); }
+        #node-transform.active { border-color: var(--accent-orange); box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.1); }
+        #node-load.active { border-color: var(--accent-green); box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.1); }
+
+        /* Agent Routing Nodes Layout */
+        .agent-graph {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        #node-classifier { grid-column: 1; grid-row: 2; align-self: center; }
+        #node-research { grid-column: 2; grid-row: 1; }
+        #node-support { grid-column: 2; grid-row: 2; }
+        #node-human { grid-column: 2; grid-row: 3; }
+
+        #node-research.active { border-color: var(--accent-green); box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.1); }
+        #node-support.active { border-color: var(--accent-orange); box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.1);}
+        #node-human.active { border-color: var(--accent-red); box-shadow: 0 0 25px rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.1); }
+
+        .log-terminal {
+            background: #020617;
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            height: 150px;
+            overflow-y: auto;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.05);
+            line-height: 1.5;
+        }
+
+        .log-terminal div {
+            margin-bottom: 0.5rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .log-info { color: var(--accent-blue); }
+        .log-success { color: var(--accent-green); }
+        .log-warning { color: var(--accent-orange); }
+        .log-error { color: var(--accent-red); }
+        .log-user { color: #f8fafc; font-weight: bold; margin-top: 1rem !important; margin-bottom: 0.5rem !important;}
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Connecting Lines */
+        .line {
+            position: absolute;
+            background: var(--text-muted);
+            height: 3px;
+            z-index: 1;
+            opacity: 0.2;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+        .line.active {
+            background: var(--accent-green);
+            opacity: 1;
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+        .line-1 { top: 50%; left: 25%; width: 15%; }
+        .line-2 { top: 50%; left: 60%; width: 15%; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>FinTech Operations & Telemetry</h1>
+        <p class="subtitle">Fraud Detection & Sentiment Support Networks</p>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- Panel 1: ETL Pipeline -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                <h2>💳 Fraud ETL Engine</h2>
+                <span class="status-badge" id="etl-status">Standby</span>
+            </div>
+            
+            <div class="controls">
+                <button id="btn-etl" onclick="triggerETL()">▶ Process Bank Statements</button>
+            </div>
+
+            <div class="graph-container">
+                <div class="line line-1" id="etl-l1"></div>
+                <div class="line line-2" id="etl-l2"></div>
+
+                <div class="node" id="node-extract">
+                    <h3>📥 Extract</h3>
+                    <span id="etl-state-1">Idle</span>
+                </div>
+                <div class="node" id="node-transform">
+                    <h3>⚙️ Audit</h3>
+                    <span id="etl-state-2">Idle</span>
+                </div>
+                <div class="node" id="node-load">
+                    <h3>📤 Load DB</h3>
+                    <span id="etl-state-3">Idle</span>
+                </div>
+            </div>
+
+            <div class="log-terminal" id="etl-logs">
+                <div class="log-info">> [System] Ready to process incoming bank transactions. Click to start phase.</div>
+            </div>
+        </div>
+
+        <!-- Panel 2: Agentic Routing -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                <h2>🤖 Sentiment Routing System</h2>
+                <span class="status-badge" id="agent-status" style="animation: pulse-green 2s infinite; background: rgba(16, 185, 129, 0.2); color: var(--accent-green);">Hugging Face Online</span>
+            </div>
+            
+            <div class="controls">
+                <input type="text" id="agent-input" placeholder="Type a msg (e.g. 'I love this!', 'I will sue you!', 'This app is terrible')">
+                <button id="btn-agent" onclick="triggerAgent()">Submit 🚀</button>
+            </div>
+
+            <div class="graph-container agent-graph">
+                <div class="node" id="node-classifier">
+                    <h3>🧠 HF Sentiment</h3>
+                    <span>DistilBERT Model</span>
+                </div>
+                <div class="node" id="node-research">
+                    <h3>🎁 Rewards Agt.</h3>
+                    <span>Loyalty Perks</span>
+                </div>
+                <div class="node" id="node-support">
+                    <h3>🛠️ Support Agt.</h3>
+                    <span>De-escalation</span>
+                </div>
+                <div class="node" id="node-human">
+                    <h3>🧑‍💻 Human Esc.</h3>
+                    <span>Legal / TOS</span>
+                </div>
+            </div>
+
+            <div class="log-terminal" id="agent-logs">
+                <div class="log-info">> [System] Ready to route live customer chats via Hugging Face.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function appendLog(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            const div = document.createElement('div');
+            div.className = `log-${type}`;
+            div.innerText = type === "user" ? `> User: ${text}` : `> ${text}`;
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        // --- ETL Interactive Logic ---
+        let etlRunning = false;
+        async function triggerETL() {
+            if (etlRunning) return;
+            etlRunning = true;
+            document.getElementById('btn-etl').disabled = true;
+
+            const extract = document.getElementById('node-extract');
+            const transform = document.getElementById('node-transform');
+            const load = document.getElementById('node-load');
+            const l1 = document.getElementById('etl-l1');
+            const l2 = document.getElementById('etl-l2');
+            const status = document.getElementById('etl-status');
+
+            // Reset
+            [extract, transform, load].forEach(n => n.classList.remove('active'));
+            [l1, l2].forEach(l => l.classList.remove('active'));
+            document.getElementById('etl-state-1').innerText = "Standby";
+            document.getElementById('etl-state-2').innerText = "Standby";
+            document.getElementById('etl-state-3').innerText = "Standby";
+
+            status.className = "status-badge active-blue";
+
+            // Extract Phase
+            status.innerText = "Extracting";
+            extract.classList.add('active');
+            appendLog('etl-logs', '[Extract] Retrieving 5000 API payments...', 'info');
+            await new Promise(r => setTimeout(r, 1200));
+            document.getElementById('etl-state-1').innerText = "5000 TXFs fetched";
+            extract.classList.remove('active');
+
+            // Transform Phase
+            l1.classList.add('active');
+            await new Promise(r => setTimeout(r, 400));
+            status.innerText = "Auditing (Fraud Rules)";
+            transform.classList.add('active');
+            appendLog('etl-logs', '[Transform] Applying rules: Amount > $1000 or Location = Unknown...', 'warning');
+            await new Promise(r => setTimeout(r, 1800));
+            document.getElementById('etl-state-2').innerText = "14 Flags Raised";
+            transform.classList.remove('active');
+
+            // Load Phase
+            l1.classList.remove('active');
+            l2.classList.add('active');
+            await new Promise(r => setTimeout(r, 400));
+            status.innerText = "Loading";
+            status.className = "status-badge active-green";
+            load.classList.add('active');
+            appendLog('etl-logs', '[Load] Storing 14 Suspicious TXFs in Security DB.', 'success');
+            await new Promise(r => setTimeout(r, 1200));
+            document.getElementById('etl-state-3').innerText = "Security DB Updated";
+            load.classList.remove('active');
+            l2.classList.remove('active');
+
+            status.innerText = "Standby";
+            status.className = "status-badge";
+            appendLog('etl-logs', '[System] Audit Phase Complete.', 'info');
+            
+            document.getElementById('btn-etl').disabled = false;
+            etlRunning = false;
+        }
+
+        // --- Agent Interactive Logic ---
+        let agentRunning = false;
+        async function triggerAgent() {
+            if (agentRunning) return;
+            const inputEl = document.getElementById('agent-input');
+            const query = inputEl.value.trim();
+            if (!query) {
+                appendLog('agent-logs', '[Warning] Please enter a chat message.', 'warning');
+                return;
+            }
+
+            agentRunning = true;
+            document.getElementById('btn-agent').disabled = true;
+            const status = document.getElementById('agent-status');
+
+            const classNode = document.getElementById('node-classifier');
+            const support = document.getElementById('node-support');
+            const research = document.getElementById('node-research');  // reusing this ID for Rewards node
+            const human = document.getElementById('node-human');
+
+            // Reset
+            [classNode, support, research, human].forEach(n => n.classList.remove('active'));
+
+            appendLog('agent-logs', `"${query}"`, 'user');
+            status.className = "status-badge active-blue";
+            status.innerText = "HF Inference API...";
+            classNode.classList.add('active');
+            
+            // Simulating API call latency
+            await new Promise(r => setTimeout(r, 1500));
+            classNode.classList.remove('active');
+
+            // Logic matching the Hugging Face python backend
+            const qLower = query.toLowerCase();
+            let targetNode = human;
+            let logType = "error";
+            let statusText = "Escalated to Human";
+            let sentiment = "NEGATIVE 😡";
+
+            if (qLower.includes("love") || qLower.includes("great") || qLower.includes("amazing") || qLower.includes("happy")) {
+                sentiment = "POSITIVE 😃";
+                targetNode = research; // research id maps to Rewards Agent in CSS
+                logType = "success";
+                statusText = "Offering Rewards";
+            } else if (qLower.includes("sue") || qLower.includes("lawyer")) {
+                sentiment = "NEGATIVE 😡";
+                targetNode = human;
+                logType = "error";
+                statusText = "Legal Threat (Paused)";
+            } else {
+                sentiment = "NEGATIVE 😡";
+                targetNode = support;
+                logType = "warning";
+                statusText = "De-escalating";
+            }
+
+            // Output the HF Sentiment Score
+            appendLog('agent-logs', `[HF Model] Result -> ${sentiment}`, logType);
+            status.innerText = statusText;
+
+            // Apply specific UI blinking colors
+            if(targetNode === human) {
+                status.className = "status-badge active-green" 
+                status.style.color = "var(--accent-red)";
+                status.style.background = "rgba(239, 68, 68, 0.2)";
+                appendLog('agent-logs', 'Routing to Human Escalation due to Legal Threat...', 'error');
+            } else if (targetNode === research) {
+                appendLog('agent-logs', 'Routing to Rewards Agent...', 'info');
+            } else {
+                appendLog('agent-logs', 'Routing to Support Agent...', 'warning');
+            }
+
+            targetNode.classList.add('active');
+            
+            await new Promise(r => setTimeout(r, 2200));
+            targetNode.classList.remove('active');
+            
+            // Final log msg
+            if (targetNode === human) {
+                appendLog('agent-logs', "[System] Thread suspended via Checkpointer. Human taking over.", "info");
+            } else if (targetNode === research) {
+                appendLog('agent-logs', "[Rewards Agent] Excellent, here is a 10% loyalty discount code!", "success");
+            } else {
+                appendLog('agent-logs', "[Support Agent] I apologize for that terrible experience. Fixing it now.", "success");
+            }
+
+            status.innerText = "Hugging Face Online";
+            status.className = "status-badge";
+            status.style.color = "";
+            status.style.background = "";
+            
+            document.getElementById('btn-agent').disabled = false;
+            agentRunning = false;
+            
+            if(targetNode !== human) inputEl.value = "";
+        }
+
+        // Allow pressing Enter
+        document.getElementById("agent-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                triggerAgent();
+            }
+        });
+
+    </script>
+</body>
+</html>

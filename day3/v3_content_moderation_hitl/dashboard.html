@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HITL Content Moderation Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 2rem;
+            display: flex;
+            gap: 2rem;
+            min-height: 100vh;
+        }
+
+        h1 { margin-top: 0; font-size: 1.8rem; }
+        p { color: #94a3b8; line-height: 1.5; }
+
+        .panel {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            flex: 1;
+        }
+
+        .user-panel { border-top: 6px solid #3b82f6; }
+        .admin-panel { border-top: 6px solid #ef4444; }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-family: inherit;
+            resize: none;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+            font-size: 1rem;            
+            transition: border 0.3s;
+        }
+        textarea:focus { outline: none; border-color: #3b82f6; }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .btn-submit { background: #3b82f6; color: white; width: 100%; font-size: 1rem;}
+        .btn-submit:hover { background: #2563eb; }
+
+        .btn-approve { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; }
+        .btn-approve:hover { background: #10b981; color: white;}
+        .btn-reject { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; }
+        .btn-reject:hover { background: #ef4444; color: white;}
+
+        .status-log {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #020617;
+            border-radius: 8px;
+            font-family: monospace;
+            height: 250px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+            color: #94a3b8;
+        }
+
+        .log-info { color: #3b82f6; }
+        .log-success { color: #10b981; }
+        .log-warning { color: #f59e0b; }
+        .log-error { color: #ef4444; }
+
+        .flagged-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .item-content { font-style: italic; color: #e2e8f0; }
+        .actions { display: flex; gap: 0.5rem; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- USER UI -->
+    <div class="panel user-panel">
+        <h1>🗣️ Public Forum Demo</h1>
+        <p>Post a new message to the forum. <br><span style="color: #64748b;">(Trigger words for LangGraph intercept: <b>"scam", "crypto", "spam", "buy"</b>)</span></p>
+        
+        <textarea id="post-content" placeholder="Hello everyone! Check out my new crypto startup link, definitely not a scam..."></textarea>
+        <button class="btn-submit" onclick="submitPost()">Publish Content</button>
+
+        <div class="status-log" id="user-log">
+            <div>> [System] LangGraph MemorySaver Checkpointer Online.</div>
+        </div>
+    </div>
+
+    <!-- ADMIN UI -->
+    <div class="panel admin-panel">
+        <h1 style="color: #f87171;">🛡️ Human-in-the-Loop Override</h1>
+        <p>This panel hooks into LangGraph's <code>interrupt_before</code> breakpoints. Pending threads paused by the AI orchestrator will queue here.</p>
+        
+        <div id="pending-list" style="margin-top: 2rem;">
+            <i style="color: #64748b;">No pending flags... Graph routing freely.</i>
+        </div>
+    </div>
+
+    <!-- SIMULATED GRAPH LOGIC (To bypass pip compilation errors) -->
+    <script>
+        const pendingQueue = [];
+        let threadCounter = 1000;
+
+        function logMsg(text, type='info') {
+            const log = document.getElementById('user-log');
+            log.innerHTML += `<div class="log-${type}">> ${text}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function generateId() {
+            threadCounter++;
+            return `thread_id_${threadCounter}`;
+        }
+
+        async function submitPost() {
+            const content = document.getElementById('post-content').value.trim();
+            if (!content) return;
+            
+            const threadId = generateId();
+            logMsg(`[Graph Node: START] New payload mapped to ${threadId}`, 'info');
+            
+            // Artificial latency to simulate graph execution
+            await new Promise(r => setTimeout(r, 600));
+            logMsg(`[Graph Node: scan_node] Inspecting NLP payload...`, 'info');
+
+            const contentLower = content.toLowerCase();
+            const isFlagged = ["scam", "crypto", "spam", "buy"].some(w => contentLower.includes(w));
+
+            await new Promise(r => setTimeout(r, 800));
+
+            if (isFlagged) {
+                logMsg(`[Router] ⚠️ Malicious intent mapped. Routing to human review.`, 'warning');
+                await new Promise(r => setTimeout(r, 400));
+                logMsg(`[MemorySaver] Interrupt! State checkpoint created. Thread execution paused.`, 'error');
+
+                pendingQueue.push({ id: threadId, content: content });
+                renderAdminPanel();
+            } else {
+                logMsg(`[Router] ✅ Clear intent. Bypassing human review.`, 'info');
+                await new Promise(r => setTimeout(r, 400));
+                logMsg(`[Graph Node: publish_node] Content successfully published!`, 'success');
+            }
+
+            document.getElementById('post-content').value = "";
+        }
+
+        function renderAdminPanel() {
+            const list = document.getElementById('pending-list');
+            if (pendingQueue.length === 0) {
+                list.innerHTML = `<i style="color: #64748b;">No pending flags... Graph routing freely.</i>`;
+                return;
+            }
+
+            list.innerHTML = "";
+            pendingQueue.forEach(item => {
+                list.innerHTML += `
+                    <div class="flagged-item" id="${item.id}">
+                        <div><strong style="color: #ef4444;">Paused Graph State:</strong> ${item.id}</div>
+                        <div class="item-content">"${item.content}"</div>
+                        <div class="actions">
+                            <button class="btn-approve" onclick="review('${item.id}', 'approve')">✅ Resume & Publish</button>
+                            <button class="btn-reject" onclick="review('${item.id}', 'reject')">❌ Resume & Reject</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function review(id, decision) {
+            // Remove from queue
+            const index = pendingQueue.findIndex(x => x.id === id);
+            if (index > -1) pendingQueue.splice(index, 1);
+            
+            renderAdminPanel();
+
+            logMsg(`[Admin Override] Received external payload for ${id}`, 'info');
+            await new Promise(r => setTimeout(r, 500));
+            logMsg(`[MemorySaver] Resuming thread execution from paused checkpoint...`, 'info');
+            await new Promise(r => setTimeout(r, 500));
+
+            if (decision === 'approve') {
+                logMsg(`[Graph Node: publish_node] Admin verified. Content published.`, 'success');
+            } else {
+                logMsg(`[Graph Node: reject_node] Admin verified. Content obliterated.`, 'warning');
+            }
+        }
+
+    </script>
+
+</body>
+</html>

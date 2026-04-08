@@ -1,0 +1,11 @@
+txn_id,user,amount,location
+T001,Alice,45.00,NY
+T002,Bob,1500.00,Unknown
+T003,Charlie,12.50,CA
+T004,David,5500.00,TX
+T005,Eve,15.00,FL
+T006,Frank,90.00,Unknown
+T007,Grace,25.00,WA
+T008,Harry,8000.00,Unknown
+T009,Ivy,450.00,MA
+T010,Jack,1200.00,NY
