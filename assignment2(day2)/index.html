@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG vs Standalone LLM Evaluation | AI Researcher Dashboard</title>
+    <meta name="description" content="A comprehensive evaluation dashboard comparing RAG-enhanced LLM performance against standalone LLM responses.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="main-title">RAG Benchmarking Dashboard</h1>
+            <p class="subtitle">A rigorous evaluation of Retrieval-Augmented Generation vs. Standalone LLM performance across 10 mission-critical product queries.</p>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-value" id="avg-rel">3.5</span>
+                <span class="stat-label">Average Relevance (RAG)</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" style="color: var(--error);" id="halluc-rate">40%</span>
+                <span class="stat-label">No-RAG Hallucination Rate</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="avg-faith">5.0</span>
+                <span class="stat-label">RAG Faithfulness Score</span>
+            </div>
+        </section>
+
+        <div class="table-container">
+            <table id="eval-table">
+                <thead>
+                    <tr>
+                        <th>Query</th>
+                        <th>Comparison (No RAG vs RAG)</th>
+                        <th>Rel.</th>
+                        <th>Faith.</th>
+                        <th>Halluc.</th>
+                        <th>Analysis Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <section class="analysis-section" style="padding: 2rem; background: var(--card-bg); border-radius: 1rem; border: 1px solid var(--glass-border);">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Researcher Analysis</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Key Takeaway</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">RAG (Retrieval-Augmented Generation) is essential for technical accuracy. Standalone LLMs tend to oscillate between generic truth and specific hallucinations when context is missing.</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Critical Success Factor</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">The RAG pipeline correctly identified model-specific constraints (e.g., 2.4GHz only) that were counter-intuitive to the base LLM weights.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
