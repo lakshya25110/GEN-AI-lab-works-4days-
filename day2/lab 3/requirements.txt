@@ -1,0 +1,10 @@
+langchain
+langchain-groq
+langchain-chroma
+langchain-huggingface
+chromadb
+streamlit
+python-dotenv
+sentence-transformers
+rank_bm25
+tiktoken

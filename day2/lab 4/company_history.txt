@@ -1,0 +1,6 @@
+TechFlow Solutions: Company History
+    
+TechFlow Solutions was founded in 2018 by Eleanor Vance and Marcus Thorne in a small garage in Austin, Texas. 
+Initially focused on creating lightweight software for local logistics companies, the breakthrough came in 2021 with the release of 'FlowSync', an AI-powered supply chain management tool.
+As of 2026, TechFlow has over 500 employees globally and recently opened an office in London. 
+Our mission is to continually innovate by injecting AI into everyday business workflows.
