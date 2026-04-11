@@ -1,0 +1,19 @@
+{
+    "topics": [
+        {
+            "name": "GenAI Study Plan",
+            "status": "In Progress",
+            "timeframe": "10 weeks"
+        },
+        {
+            "name": "Introduction to GenAI",
+            "status": "Completed",
+            "timeframe": ""
+        },
+        {
+            "name": "GenAI Fundamentals",
+            "status": "In Progress",
+            "timeframe": "2 weeks"
+        }
+    ]
+}
