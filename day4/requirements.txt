@@ -1,8 +1,0 @@
-crewai
-langchain-openai
-crewai-tools
-python-dotenv
-litellm
-fastapi
-uvicorn
-pydantic
